@@ -121,7 +121,14 @@ module.wait = function(condition, tries, cb){
 
 module.isScopeReady = function(scopeName, objectPath, mustExistPathArr){
     var self = this;
+    // var scope2 = angular.element(document.getElementsByTagName(`app-market-table-history`)).scope(); // gives something
+    // const scope2 = angular.element(document.getElementsByClassName(`app-market-table mat-table`)).scope();
+    // console.log(scope2);
     var scope = angular.element(document.getElementsByClassName(`${scopeName} ng-scope`)).scope();
+    if(scopeName === 'market-history'){
+        scope = angular.element(document.getElementsByClassName(`app-market-table mat-table`)).scope();
+        // console.log(scope)
+    }
     var object = self.getDeepValue(scope, objectPath);
     var rootValid = (scope && object && Object.keys(object).length);
 
