@@ -98,6 +98,7 @@ chrome.tabs.onUpdated.addListener(function(tabId, changeInfo, tab) {
 });
 
 chrome.webRequest.onCompleted.addListener(function(details) {
+    // console.log('onCompleted', details)
     chrome.storage.local.get("onCompletedArr", function(data) {
         if (data.onCompletedArr){
             data.onCompletedArr.forEach(function(info){
@@ -153,7 +154,7 @@ function getStorageSync(path, cb){
 }
 
 function executeModule(tabId, info, config, tries = 15){
-    if (!activeTabPorts[tabId][info.path]){
+    if (!activeTabPorts[tabId] || !activeTabPorts[tabId][info.path]){
         activeTabPorts[tabId][info.path] = {}
     }
 
