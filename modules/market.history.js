@@ -6,9 +6,7 @@ module.exports.init = function () {
     module.exports.shards = {};
     if (data && data.shards) {
       for (const [shard, rooms] of Object.entries(data.shards)) {
-        module.exports.shards[shard] = {
-          rooms
-        };
+        module.exports.shards[shard] = { rooms };
       }
     } else {
       console.error(data || error);
@@ -208,9 +206,8 @@ module.exports.generateHistoryHtmlRow = function (history) {
     history.change > 0 ? "_success" : "_fail"
   }`;
   row.appendChild(changeCell);
-  var creditIcon = `<img src="https://screeps.com/a/app2/resource-credits.899cb51bdbfd597a011c.svg">`;
-  changeCell.innerHTML = module.exports.nFormatter(history.change) + " " + creditIcon;
-  ('<div style="margin-right:0px !important" class="type resource-credits"></div>');
+  changeCell.innerHTML = module.exports.nFormatter(history.change) + " " + creditIcon +
+  '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
   resourceCell.className = `_number mat-cell cdk-column-change mat-column-change`;
@@ -349,34 +346,13 @@ module.exports.nFormatter = function (num, digits = 2) {
     num *= convertFromNegative;
   }
   let si = [
-    {
-      value: 1,
-      symbol: ""
-    },
-    {
-      value: 1e3,
-      symbol: "k"
-    },
-    {
-      value: 1e6,
-      symbol: "M"
-    },
-    {
-      value: 1e9,
-      symbol: "G"
-    },
-    {
-      value: 1e12,
-      symbol: "T"
-    },
-    {
-      value: 1e15,
-      symbol: "P"
-    },
-    {
-      value: 1e18,
-      symbol: "E"
-    }
+    { value: 1, symbol: "" },
+    { value: 1e3, symbol: "k" },
+    { value: 1e6, symbol: "M" },
+    { value: 1e9, symbol: "G" },
+    { value: 1e12, symbol: "T" },
+    { value: 1e15, symbol: "P" },
+    { value: 1e18, symbol: "E" }
   ];
   let rx = /\.0+$|(\.[0-9]*[1-9])0+$/;
   let i;
