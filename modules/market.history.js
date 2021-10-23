@@ -106,6 +106,7 @@ module.exports.init = function () {
   module.exports.loadMoreButton.className = "loadButton";
   module.exports.loadMoreButton.textContent = "Load more orders";
   module.exports.loadMoreButton.onclick = () => {
+    // TODO: move focus to new orders
     module.exports.fetchMarketHistoryPage(++module.exports.page);
   };
   module.exports.container.appendChild(module.exports.loadMoreButton);
@@ -219,87 +220,98 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
   var shard = history.shard || "shard0";
 
-  if (history.type == "market.fee") {
-    /*
-     "market": {
-        "changeOrderPrice": {
-          "orderId": "6172d9cc8a185129c593b3af",
-          "oldPrice": 34.751,
-          "newPrice": 34.801
-        }
-      },
-     */
-    if (history.market.changeOrderPrice) {
-      var market = history.market.changeOrderPrice;
-      var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
+  try {
+    if (history.type == "market.fee") {
+      /*
+       "market": {
+          "changeOrderPrice": {
+            "orderId": "6172d9cc8a185129c593b3af",
+            "oldPrice": 34.751,
+            "newPrice": 34.801
+          }
+        },
+       */
+      if (history.market.extendOrder) {
+        var market = history.market.extendOrder;
+        var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
 
-      descriptionCell.innerHTML = `Change Price ${module.exports.nFormatter(
-        market.oldPrice
-      )} -> ${module.exports.nFormatter(market.newPrice)} ${infoCircle}`;
-    } else {
-      var market = history.market.order;
+        descriptionCell.innerHTML = `Extend ${module.exports.nFormatter(market.addAmount)} ${infoCircle}`;
+      } else if (history.market.changeOrderPrice) {
+        var market = history.market.changeOrderPrice;
+        var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
+
+        descriptionCell.innerHTML = `Change Price ${module.exports.nFormatter(
+          market.oldPrice
+        )} -> ${module.exports.nFormatter(market.newPrice)} ${infoCircle}`;
+      } else {
+        var market = history.market.order;
+        var type = market.resourceType;
+        var roomName = market.roomName;
+        var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
+        var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
+        var resourceIcon = `<a href="#!/market/all/${shard}/${type}"><img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/${type}.png" style="margin-right:0"></a>`;
+
+        resourceCell.innerHTML = resourceIcon;
+
+        const amount = market.remainingAmount
+          ? `${module.exports.nFormatter(market.remainingAmount)} remaining`
+          : `${module.exports.nFormatter(market.totalAmount)} total`;
+
+        descriptionCell.innerHTML = `${roomLink} Market fee (${
+          market.type
+        }) ${amount} ${resourceIcon} (${module.exports.nFormatter(market.price)}) ${infoCircle}`;
+      }
+    } else if (history.type == "market.buy" || history.type == "market.sell") {
+      var market = history.market;
       var type = market.resourceType;
       var roomName = market.roomName;
-      var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
-      var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
-      var resourceIcon = `<a href="#!/market/all/${shard}/${type}"><img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/${type}.png" style="margin-right:0"></a>`;
+      var targetRoomName = market.targetRoomName;
+      var transactionCost = module.exports.calcTransactionCost(shard, market.amount, roomName, targetRoomName);
+
+      var ownerIsMe = market.owner == module.exports.userId;
+      var dealerIsMe = market.dealer == module.exports.userId;
+
+      var targetRoomIsMine = false;
+
+      var resourceIcon = `<a href="#!/market/all/${shard}/${type}">
+                              <img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/${type}.png" style="margin-right:0">
+                          </a>`;
+
+      var resourceEnergy = `<a href="#!/market/all/${shard}/energy">
+                              <img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/energy.png">
+                          </a>`;
 
       resourceCell.innerHTML = resourceIcon;
 
-      const amount = market.remainingAmount
-        ? `${module.exports.nFormatter(market.remainingAmount)} remaining`
-        : `${module.exports.nFormatter(market.totalAmount)} total`;
+      if (module.exports.shards[shard] && module.exports.shards[shard].rooms.includes(targetRoomName)) {
+        let temp = roomName;
+        roomName = targetRoomName;
+        targetRoomName = temp;
+        targetRoomIsMine = true;
+      }
 
-      descriptionCell.innerHTML = `${roomLink} Market fee (${
-        market.type
-      }) ${amount} ${resourceIcon} (${module.exports.nFormatter(market.price)}) ${infoCircle}`;
+      var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
+      var targetRoomLink = `<a href="#!/room/${shard}/${targetRoomName}">${targetRoomName}</a>`;
+      var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
+      var transactionCostHtml = `(<span style="color:#ff8f8f;margin-right:-12px">-${module.exports.nFormatter(
+        transactionCost
+      )} ${resourceEnergy}</span>)`;
+
+      const amount = module.exports.nFormatter(market.amount);
+      const price = module.exports.nFormatter(market.price);
+
+      const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
+      const fromOrTo = history.type == "market.buy" ? "from" : "to";
+      if (dealerIsMe) {
+        descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
+      } else {
+        descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${infoCircle}`;
+      }
     }
-  } else if (history.type == "market.buy" || history.type == "market.sell") {
-    var market = history.market;
-    var type = market.resourceType;
-    var roomName = market.roomName;
-    var targetRoomName = market.targetRoomName;
-    var transactionCost = module.exports.calcTransactionCost(shard, market.amount, roomName, targetRoomName);
-
-    var ownerIsMe = market.owner == module.exports.userId;
-    var dealerIsMe = market.dealer == module.exports.userId;
-
-    var targetRoomIsMine = false;
-
-    var resourceIcon = `<a href="#!/market/all/${shard}/${type}">
-                            <img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/${type}.png" style="margin-right:0">
-                        </a>`;
-
-    var resourceEnergy = `<a href="#!/market/all/${shard}/energy">
-                            <img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/energy.png">
-                        </a>`;
-
-    resourceCell.innerHTML = resourceIcon;
-
-    if (module.exports.shards[shard] && module.exports.shards[shard].rooms.includes(targetRoomName)) {
-      let temp = roomName;
-      roomName = targetRoomName;
-      targetRoomName = temp;
-      targetRoomIsMine = true;
-    }
-
-    var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
-    var targetRoomLink = `<a href="#!/room/${shard}/${targetRoomName}">${targetRoomName}</a>`;
-    var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
-    var transactionCostHtml = `(<span style="color:#ff8f8f;margin-right:-12px">-${module.exports.nFormatter(
-      transactionCost
-    )} ${resourceEnergy}</span>)`;
-
-    const amount = module.exports.nFormatter(market.amount);
-    const price = module.exports.nFormatter(market.price);
-
-    const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
-    const fromOrTo = history.type == "market.buy" ? "from" : "to";
-    if (dealerIsMe) {
-      descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
-    } else {
-      descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${infoCircle}`;
-    }
+  } catch (error) {
+    var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(history) + "'></div>";
+    console.error(error);
+    descriptionCell.innerHTML = `Error: ${error.message} ${infoCircle}`;
   }
   return row;
 };
