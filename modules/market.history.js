@@ -307,7 +307,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
       const amount = module.exports.nFormatter(market.amount);
       const price = module.exports.nFormatter(market.price);
-      resourceCell.innerHTML = amount + resourceIcon;
+      resourceCell.innerHTML = (history.type == "market.sell" ? "-" : "") + amount + resourceIcon;
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
       const fromOrTo = history.type == "market.buy" ? "from" : "to";
