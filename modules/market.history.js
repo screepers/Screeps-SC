@@ -1,5 +1,6 @@
 module.exports.init = function () {
   var userid = JSON.parse(localStorage.getItem("users.code.activeWorld"))[0]._id;
+  module.exports.userId = userid;
 
   module.ajaxGet("https://screeps.com/api/user/rooms?id=" + userid, function (data, error) {
     module.exports.shards = {};
@@ -231,6 +232,9 @@ module.exports.generateHistoryHtmlRow = function (history) {
     var targetRoomName = market.targetRoomName;
     var transactionCost = module.exports.calcTransactionCost(shard, market.amount, roomName, targetRoomName);
 
+    var ownerIsMe = market.owner == module.exports.userId;
+    var dealerIsMe = market.dealer == module.exports.userId;
+
     var targetRoomIsMine = false;
 
     var resourceIcon = `<a href="#!/market/all/${shard}/${type}">
@@ -259,13 +263,13 @@ module.exports.generateHistoryHtmlRow = function (history) {
     const price = module.exports.nFormatter(market.price);
 
     if (history.type == "market.buy") {
-      if (targetRoomIsMine) {
+      if (dealerIsMe) {
         descriptionCell.innerHTML = `${roomLink} bought ${amount}${resourceIcon} (${price}) from ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
       } else {
         descriptionCell.innerHTML = `${roomLink} bought ${amount}${resourceIcon} (${price}) from ${targetRoomLink} ${infoCircle}`;
       }
     } else {
-      if (targetRoomIsMine) {
+      if (dealerIsMe) {
         descriptionCell.innerHTML = `${roomLink} sold ${amount}${resourceIcon} (${price}) to ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
       } else {
         descriptionCell.innerHTML = `${roomLink} sold ${amount}${resourceIcon} (${price}) to ${targetRoomLink} ${infoCircle}`;
