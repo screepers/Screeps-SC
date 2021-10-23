@@ -33,7 +33,9 @@ module.exports.init = function () {
   style.innerHTML +=
     ".loadButton {place-items: center;margin: 0 20px;border: none;background: transparent;color: #4A5FD2;font-size: 12px;font-weight: 600;line-height: 26px;text-transform: uppercase;}";
   style.innerHTML += "._success {color: #80D47B;}";
-  style.innerHTML += "._fail {color: #D2554A;;}";
+  style.innerHTML += "._fail {color: #D2554A;}";
+  style.innerHTML += "._number {text-align:right;}";
+
   document.head.appendChild(style);
 
   module.exports.players = {};
@@ -79,7 +81,7 @@ module.exports.init = function () {
 
   const resourceHeaderCell = document.createElement("td");
   resourceHeaderCell.innerHTML = "R";
-  resourceHeaderCell.className = "_number mat-header-cell cdk-column-change";
+  resourceHeaderCell.className = "mat-header-cell cdk-column-change";
   header.appendChild(resourceHeaderCell);
 
   const descriptionHeaderCell = document.createElement("td");
@@ -201,7 +203,8 @@ module.exports.generateHistoryHtmlRow = function (history) {
   changeCell.innerHTML = module.exports.nFormatter(history.change);
 
   const resourceCell = document.createElement("td");
-  resourceCell.className = `_number mat-cell cdk-column-change mat-column-change`;
+  resourceCell.className = `mat-cell cdk-column-change mat-column-change`;
+  // resourceCell.style = "text-align:right;";
   row.appendChild(resourceCell);
 
   const descriptionCell = document.createElement("td");
