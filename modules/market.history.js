@@ -51,6 +51,57 @@ module.exports.init = function () {
   // todo.innerHTML =
   // "<h1>TODO:</h1><ul><li>Fetch player names</li><li>Fetch player icon</li><li>date formatting</li><li>indicate if you are dealing on your own orders</li></ul>";
   // module.exports.container.appendChild(todo);
+  var script_tag = document.createElement("script");
+  // script_tag.setAttribute("src", chrome.extension.getURL("assets/js/chart.min.js"));
+  script_tag.setAttribute("src", "https://cdn.jsdelivr.net/npm/chart.js@3.5.1/dist/chart.min.js");
+
+  document.head.appendChild(script_tag);
+
+  module.exports.chart = document.createElement("canvas");
+  console.log("add chart to container");
+  module.exports.container.appendChild(module.exports.chart);
+
+  module.exports.chart.width = 400;
+  module.exports.chart.height = 100;
+  // the timeout is to wait for chartjs to be injected
+  setTimeout(function () {
+    var myChart = new Chart(module.exports.chart, {
+      type: "bar",
+      data: {
+        labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+        datasets: [
+          {
+            label: "# of Votes",
+            data: [12, 19, 3, 5, 2, 3],
+            backgroundColor: [
+              "rgba(255, 99, 132, 0.2)",
+              "rgba(54, 162, 235, 0.2)",
+              "rgba(255, 206, 86, 0.2)",
+              "rgba(75, 192, 192, 0.2)",
+              "rgba(153, 102, 255, 0.2)",
+              "rgba(255, 159, 64, 0.2)"
+            ],
+            borderColor: [
+              "rgba(255, 99, 132, 1)",
+              "rgba(54, 162, 235, 1)",
+              "rgba(255, 206, 86, 1)",
+              "rgba(75, 192, 192, 1)",
+              "rgba(153, 102, 255, 1)",
+              "rgba(255, 159, 64, 1)"
+            ],
+            borderWidth: 1
+          }
+        ]
+      },
+      options: {
+        scales: {
+          y: {
+            beginAtZero: true
+          }
+        }
+      }
+    });
+  }, 200);
 
   module.exports.marketHistory = document.createElement("table");
   module.exports.marketHistory.style = "width: 100%;";
@@ -206,8 +257,9 @@ module.exports.generateHistoryHtmlRow = function (history) {
     history.change > 0 ? "_success" : "_fail"
   }`;
   row.appendChild(changeCell);
-  changeCell.innerHTML = module.exports.nFormatter(history.change) +
-  '<div style="margin-right:0px !important" class="type resource-credits"></div>';
+  changeCell.innerHTML =
+    module.exports.nFormatter(history.change) +
+    '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
   resourceCell.className = `_number mat-cell cdk-column-change mat-column-change ${
