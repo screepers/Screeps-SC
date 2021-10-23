@@ -43,7 +43,7 @@ module.exports.init = function () {
   const todo = document.createElement("div");
   todo.style = "text-align:left;color:white";
   todo.innerHTML =
-    "<h1>TODO:</h1><ul><li>Fetch player names</li><li>Fetch player icon</li><li>date formatting</li></ul>";
+    "<h1>TODO:</h1><ul><li>Fetch player names</li><li>Fetch player icon</li><li>date formatting</li><li>indicate if you are dealing on your own orders</li></ul>";
   module.exports.container.appendChild(todo);
 
   module.exports.marketHistory = document.createElement("table");
@@ -192,6 +192,8 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
   var shard = history.shard || "shard0";
 
+  // TODO _success & _fail for positive or negative changes
+
   if (history.type == "market.fee") {
     /*
      "market": {
@@ -262,18 +264,12 @@ module.exports.generateHistoryHtmlRow = function (history) {
     const amount = module.exports.nFormatter(market.amount);
     const price = module.exports.nFormatter(market.price);
 
-    if (history.type == "market.buy") {
-      if (dealerIsMe) {
-        descriptionCell.innerHTML = `${roomLink} bought ${amount}${resourceIcon} (${price}) from ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
-      } else {
-        descriptionCell.innerHTML = `${roomLink} bought ${amount}${resourceIcon} (${price}) from ${targetRoomLink} ${infoCircle}`;
-      }
+    const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
+    const fromOrTo = history.type == "market.buy" ? "from" : "to";
+    if (dealerIsMe) {
+      descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
     } else {
-      if (dealerIsMe) {
-        descriptionCell.innerHTML = `${roomLink} sold ${amount}${resourceIcon} (${price}) to ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
-      } else {
-        descriptionCell.innerHTML = `${roomLink} sold ${amount}${resourceIcon} (${price}) to ${targetRoomLink} ${infoCircle}`;
-      }
+      descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${infoCircle}`;
     }
   }
   return row;
