@@ -206,7 +206,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
     history.change > 0 ? "_success" : "_fail"
   }`;
   row.appendChild(changeCell);
-  changeCell.innerHTML = module.exports.nFormatter(history.change) + " " + creditIcon +
+  changeCell.innerHTML = module.exports.nFormatter(history.change) +
   '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
