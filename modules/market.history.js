@@ -35,6 +35,8 @@ module.exports.init = function () {
   style.innerHTML += "._success {color: #80D47B;}";
   style.innerHTML += "._fail {color: #D2554A;}";
   style.innerHTML += "._number {text-align:right;}";
+  style.innerHTML +=
+    ".type {display:inline-block; vertical-align: middle; width: 25px;min-height: 37px;text-align: center;background-repeat: no-repeat;}";
 
   document.head.appendChild(style);
 
@@ -44,11 +46,11 @@ module.exports.init = function () {
   // appHistory.innerHTML = ''
   module.exports.container = document.createElement("div");
   module.exports.container.style = "width: 100%; max-width:1100px; margin:auto;text-align:center;";
-  const todo = document.createElement("div");
-  todo.style = "text-align:left;color:white";
-  todo.innerHTML =
-    "<h1>TODO:</h1><ul><li>Fetch player names</li><li>Fetch player icon</li><li>date formatting</li><li>indicate if you are dealing on your own orders</li></ul>";
-  module.exports.container.appendChild(todo);
+  // const todo = document.createElement("div");
+  // todo.style = "text-align:left;color:white";
+  // todo.innerHTML =
+  //   "<h1>TODO:</h1><ul><li>Fetch player names</li><li>Fetch player icon</li><li>date formatting</li><li>indicate if you are dealing on your own orders</li></ul>";
+  // module.exports.container.appendChild(todo);
 
   module.exports.marketHistory = document.createElement("table");
   module.exports.marketHistory.style = "width: 100%;";
@@ -163,6 +165,8 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
       }
 
       if (history.dealer && !module.exports.players[history.dealer]) {
+        // https://screeps.com/api/user/find?id=5a44e109ac5a5f1d0146916e
+        // TODO: render player icon
       }
 
       const row = module.exports.generateHistoryHtmlRow(history);
@@ -202,7 +206,9 @@ module.exports.generateHistoryHtmlRow = function (history) {
     history.change > 0 ? "_success" : "_fail"
   }`;
   row.appendChild(changeCell);
-  changeCell.innerHTML = module.exports.nFormatter(history.change);
+  changeCell.innerHTML =
+    module.exports.nFormatter(history.change) +
+    '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
   resourceCell.className = `mat-cell cdk-column-change mat-column-change`;
@@ -249,8 +255,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
         var roomName = market.roomName;
         var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
         var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
-        var resourceIcon = `<a href="#!/market/all/${shard}/${type}"><img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/${type}.png" style="margin-right:0"></a>`;
-
+        var resourceIcon = module.exports.resourceImageLink(shard, type);
         resourceCell.innerHTML = resourceIcon;
 
         const amount = market.remainingAmount
@@ -266,20 +271,20 @@ module.exports.generateHistoryHtmlRow = function (history) {
       var type = market.resourceType;
       var roomName = market.roomName;
       var targetRoomName = market.targetRoomName;
-      var transactionCost = module.exports.calcTransactionCost(shard, market.amount, roomName, targetRoomName);
+      var accountResource = !roomName || !targetRoomName;
+      var transactionCost = accountResource
+        ? ""
+        : module.exports.calcTransactionCost(shard, market.amount, roomName, targetRoomName);
 
       var ownerIsMe = market.owner == module.exports.userId;
       var dealerIsMe = market.dealer == module.exports.userId;
 
       var targetRoomIsMine = false;
 
-      var resourceIcon = `<a href="#!/market/all/${shard}/${type}">
-                              <img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/${type}.png" style="margin-right:0">
-                          </a>`;
+      // market-resource--battery has -10px important margin, we need to override that
+      var resourceIcon = module.exports.resourceImageLink(shard, type);
 
-      var resourceEnergy = `<a href="#!/market/all/${shard}/energy">
-                              <img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/energy.png">
-                          </a>`;
+      var resourceEnergy = module.exports.resourceImageLink(shard, "energy");
 
       resourceCell.innerHTML = resourceIcon;
 
@@ -302,7 +307,10 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
       const fromOrTo = history.type == "market.buy" ? "from" : "to";
-      if (dealerIsMe) {
+      if (accountResource) {
+        // TODO: acquire player, don't think we have that info
+        descriptionCell.innerHTML = `Account: ${soldOrBought} ${amount}${resourceIcon} (${price}) ${infoCircle}`;
+      } else if (dealerIsMe) {
         descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
       } else {
         descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${infoCircle}`;
@@ -315,7 +323,14 @@ module.exports.generateHistoryHtmlRow = function (history) {
   }
   return row;
 };
-
+module.exports.resourceImageLink = function (shard, type) {
+  // market-resource--battery has -10px important margin, we need to override that
+  return type
+    ? `<a href="#!/market/all/${shard}/${type}">
+                    <div style=\"margin-right:0px !important\" class=\"type market-resource--${type}\"></div>
+                  </a>`
+    : "";
+};
 module.exports.update = function () {
   console.log("update getting called");
 };
