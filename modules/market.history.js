@@ -3,6 +3,7 @@ module.exports.init = function () {
   module.exports.userId = userid;
 
   module.ajaxGet("https://screeps.com/api/user/rooms?id=" + userid, function (data, error) {
+    module.exports.data = {};
     module.exports.shards = {};
     if (data && data.shards) {
       for (const [shard, rooms] of Object.entries(data.shards)) {
@@ -57,41 +58,41 @@ module.exports.init = function () {
 
   document.head.appendChild(script_tag);
 
-  module.exports.chart = document.createElement("canvas");
+  module.exports.chartCanvas = document.createElement("canvas");
   console.log("add chart to container");
-  module.exports.container.appendChild(module.exports.chart);
+  module.exports.container.appendChild(module.exports.chartCanvas);
 
-  module.exports.chart.width = 400;
-  module.exports.chart.height = 100;
+  module.exports.chartCanvas.width = 400;
+  module.exports.chartCanvas.height = 100;
   // the timeout is to wait for chartjs to be injected
   setTimeout(function () {
-    var myChart = new Chart(module.exports.chart, {
-      type: "bar",
+    module.exports.chart = new Chart(module.exports.chartCanvas, {
+      type: "line",
       data: {
-        labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
-        datasets: [
-          {
-            label: "# of Votes",
-            data: [12, 19, 3, 5, 2, 3],
-            backgroundColor: [
-              "rgba(255, 99, 132, 0.2)",
-              "rgba(54, 162, 235, 0.2)",
-              "rgba(255, 206, 86, 0.2)",
-              "rgba(75, 192, 192, 0.2)",
-              "rgba(153, 102, 255, 0.2)",
-              "rgba(255, 159, 64, 0.2)"
-            ],
-            borderColor: [
-              "rgba(255, 99, 132, 1)",
-              "rgba(54, 162, 235, 1)",
-              "rgba(255, 206, 86, 1)",
-              "rgba(75, 192, 192, 1)",
-              "rgba(153, 102, 255, 1)",
-              "rgba(255, 159, 64, 1)"
-            ],
-            borderWidth: 1
-          }
-        ]
+        // labels: ["Red", "Blue", "Yellow", "Green", "Purple", "Orange"],
+        // datasets: [
+        //   {
+        //     label: "# of Votes",
+        //     data: [12, 19, 3, 5, 2, 3],
+        //     backgroundColor: [
+        //       "rgba(255, 99, 132, 0.2)",
+        //       "rgba(54, 162, 235, 0.2)",
+        //       "rgba(255, 206, 86, 0.2)",
+        //       "rgba(75, 192, 192, 0.2)",
+        //       "rgba(153, 102, 255, 0.2)",
+        //       "rgba(255, 159, 64, 0.2)"
+        //     ],
+        //     borderColor: [
+        //       "rgba(255, 99, 132, 1)",
+        //       "rgba(54, 162, 235, 1)",
+        //       "rgba(255, 206, 86, 1)",
+        //       "rgba(75, 192, 192, 1)",
+        //       "rgba(153, 102, 255, 1)",
+        //       "rgba(255, 159, 64, 1)"
+        //     ],
+        //     borderWidth: 1
+        //   }
+        // ]
       },
       options: {
         scales: {
@@ -101,7 +102,7 @@ module.exports.init = function () {
         }
       }
     });
-  }, 200);
+  }, 100);
 
   module.exports.marketHistory = document.createElement("table");
   module.exports.marketHistory.style = "width: 100%;";
@@ -215,6 +216,8 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
         continue;
       }
 
+      module.exports.data[history._id] = history;
+
       if (history.dealer && !module.exports.players[history.dealer]) {
         // https://screeps.com/api/user/find?id=5a44e109ac5a5f1d0146916e
         // TODO: render player icon
@@ -228,8 +231,55 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
       }
     }
 
-    // module.exports.update();
+    setTimeout(() => {
+      // refresh / regroup / redraw graph
+      console.log("doing chart");
+      //data: [{x:'2016-12-25', y:20}, {x:'2016-12-26', y:10}]
+      const datasets = {};
+      const chartData = {
+        datasets: []
+      };
+      for (const [_id, history] of Object.entries(module.exports.data)) {
+        if (/*history.type == "market.buy" ||*/ history.type == "market.sell") {
+          const key = `${history.market.resourceType} ${history.type}`;
+          let dataset = datasets[key];
+          if (!dataset) {
+            dataset = {
+              label: key,
+              data: [],
+              backgroundColor: module.exports.getResourceColor(history.market.resourceType),
+              borderColor: module.exports.getResourceColor(history.market.resourceType)
+            };
+            console.log(`dataset`, dataset);
+            datasets[key] = dataset;
+            chartData.datasets.push(dataset);
+          }
+          const date = new Date(history.date).toLocaleDateString();
+          const dateEntry = dataset.data.find((d) => d.x === date);
+          if (dateEntry) {
+            dateEntry.y += history.change;
+          } else {
+            dataset.data.push({ x: date, y: history.change });
+          }
+        }
+      }
+      // console.log("setting chart data", module.exports.chart);
+      module.exports.chart.data = chartData;
+
+      module.exports.chart.update();
+    }, 100);
   });
+};
+module.exports.getResourceColor = function (resourceType) {
+  console.log(resourceType);
+  switch (resourceType) {
+    case "battery":
+      return "rgba(217,213,0,255)";
+    case "energy":
+      return "rgba(118, 93, 0, 255)";
+    case "power":
+      return "rgba(255, 0, 0, 255)";
+  }
 };
 
 module.exports.generateHistoryHtmlRow = function (history) {
