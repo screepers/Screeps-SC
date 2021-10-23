@@ -336,6 +336,11 @@ module.exports.update = function () {
 };
 
 module.exports.nFormatter = function (num, digits = 2) {
+  let convertFromNegative = 1;
+  if (num < 0) {
+    convertFromNegative = -1;
+    num *= convertFromNegative;
+  }
   let si = [
     { value: 1, symbol: "" },
     { value: 1e3, symbol: "k" },
@@ -352,7 +357,8 @@ module.exports.nFormatter = function (num, digits = 2) {
       break;
     }
   }
-  return (num / si[i].value).toFixed(digits).replace(rx, "$1") + si[i].symbol;
+  const formatted = (num / si[i].value).toFixed(digits).replace(rx, "$1") * convertFromNegative;
+  return formatted + si[i].symbol;
 };
 
 /* taken from @screeps market */
