@@ -259,7 +259,7 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
           if (dateEntry) {
             dateEntry.y += history.change;
           } else {
-            dataset.data.push({ x: date, y: history.change });
+            dataset.data.unshift({ x: date, y: history.change });
           }
         }
       }
