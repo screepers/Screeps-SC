@@ -49,7 +49,7 @@ module.exports.init = function () {
   // const todo = document.createElement("div");
   // todo.style = "text-align:left;color:white";
   // todo.innerHTML =
-  //   "<h1>TODO:</h1><ul><li>Fetch player names</li><li>Fetch player icon</li><li>date formatting</li><li>indicate if you are dealing on your own orders</li></ul>";
+  // "<h1>TODO:</h1><ul><li>Fetch player names</li><li>Fetch player icon</li><li>date formatting</li><li>indicate if you are dealing on your own orders</li></ul>";
   // module.exports.container.appendChild(todo);
 
   module.exports.marketHistory = document.createElement("table");
@@ -77,13 +77,13 @@ module.exports.init = function () {
   header.appendChild(tickHeaderCell);
 
   const changeHeaderCell = document.createElement("td");
-  changeHeaderCell.innerHTML = "Change";
+  changeHeaderCell.innerHTML = "Credit Change";
   changeHeaderCell.className = "_number mat-header-cell cdk-column-change mat-column-change";
   header.appendChild(changeHeaderCell);
 
   const resourceHeaderCell = document.createElement("td");
-  resourceHeaderCell.innerHTML = "R";
-  resourceHeaderCell.className = "mat-header-cell cdk-column-change";
+  resourceHeaderCell.innerHTML = "Resource Change";
+  resourceHeaderCell.className = "_number mat-header-cell cdk-column-change";
   header.appendChild(resourceHeaderCell);
 
   const descriptionHeaderCell = document.createElement("td");
@@ -125,9 +125,9 @@ module.exports.init = function () {
   //            var bodyObj = JSON.parse(body);//etc.
   //            console.log(body);
   //         }
-  //   }
-  //   });
-  //   });
+  // }
+  // });
+  // });
 };
 
 module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
@@ -206,13 +206,13 @@ module.exports.generateHistoryHtmlRow = function (history) {
     history.change > 0 ? "_success" : "_fail"
   }`;
   row.appendChild(changeCell);
-  changeCell.innerHTML =
-    module.exports.nFormatter(history.change) +
-    '<div style="margin-right:0px !important" class="type resource-credits"></div>';
+  changeCell.innerHTML = module.exports.nFormatter(history.change) +
+  '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
-  resourceCell.className = `mat-cell cdk-column-change mat-column-change`;
-  // resourceCell.style = "text-align:right;";
+  resourceCell.className = `_number mat-cell cdk-column-change mat-column-change ${
+    history.type == "market.buy" ? "_success" : "_fail"
+  }`;
   row.appendChild(resourceCell);
 
   const descriptionCell = document.createElement("td");
@@ -292,8 +292,6 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
       var resourceEnergy = module.exports.resourceImageLink(shard, "energy");
 
-      resourceCell.innerHTML = resourceIcon;
-
       if (module.exports.shards[shard] && module.exports.shards[shard].rooms.includes(targetRoomName)) {
         let temp = roomName;
         roomName = targetRoomName;
@@ -310,6 +308,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
       const amount = module.exports.nFormatter(market.amount);
       const price = module.exports.nFormatter(market.price);
+      resourceCell.innerHTML = (history.type == "market.sell" ? "-" : "") + amount + resourceIcon;
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
       const fromOrTo = history.type == "market.buy" ? "from" : "to";
