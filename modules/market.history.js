@@ -205,8 +205,8 @@ module.exports.generateHistoryHtmlRow = function (history) { // console.log(hist
     }`;
     row.appendChild(changeCell);
     var creditIcon = `<img src="https://screeps.com/a/app2/resource-credits.899cb51bdbfd597a011c.svg">`;
-    changeCell.innerHTML = module.exports.nFormatter(history.change) + ' ' + creditIcon
-    '<div style="margin-right:0px !important" class="type resource-credits"></div>';
+    changeCell.innerHTML = module.exports.nFormatter(history.change) + " " + creditIcon;
+    ('<div style="margin-right:0px !important" class="type resource-credits"></div>');
 
     const resourceCell = document.createElement("td");
     resourceCell.className = `_number mat-cell cdk-column-change mat-column-change`;
@@ -299,7 +299,6 @@ module.exports.generateHistoryHtmlRow = function (history) { // console.log(hist
             var resourceIcon = module.exports.resourceImageLink(shard, type);
 
             var resourceEnergy = module.exports.resourceImageLink(shard, "energy");
-
 
             if (module.exports.shards[shard] && module.exports.shards[shard].rooms.includes(targetRoomName)) {
                 let temp = roomName;
@@ -477,8 +476,6 @@ module.exports._slicedToArray = (function () {
                 if (i && _arr.length === i) 
                     break;
                 
-
-
             }
         } catch (err) {
             _d = true;
@@ -488,14 +485,10 @@ module.exports._slicedToArray = (function () {
                 if (! _n && _i["return"]) 
                     _i["return"]();
                 
-
-
             } finally {
                 if (_d) 
                     throw _e;
                 
-
-
             }
         }
         return _arr;
