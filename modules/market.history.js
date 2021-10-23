@@ -210,8 +210,9 @@ module.exports.generateHistoryHtmlRow = function (history) {
   '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
-  resourceCell.className = `_number mat-cell cdk-column-change mat-column-change`;
-  // resourceCell.style = "text-align:right;";
+  resourceCell.className = `_number mat-cell cdk-column-change mat-column-change ${
+    history.type == "market.buy" ? "_success" : "_fail"
+  }`;
   row.appendChild(resourceCell);
 
   const descriptionCell = document.createElement("td");
