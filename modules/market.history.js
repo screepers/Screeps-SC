@@ -32,6 +32,8 @@ module.exports.init = function () {
   style.innerHTML = ".mat-row:nth-of-type(2n+1) { background-color: rgba(255, 255, 255, 0.02); }";
   style.innerHTML +=
     ".loadButton {place-items: center;margin: 0 20px;border: none;background: transparent;color: #4A5FD2;font-size: 12px;font-weight: 600;line-height: 26px;text-transform: uppercase;}";
+  style.innerHTML += "._success {color: #80D47B;}";
+  style.innerHTML += "._fail {color: #D2554A;;}";
   document.head.appendChild(style);
 
   module.exports.players = {};
@@ -69,6 +71,16 @@ module.exports.init = function () {
   tickHeaderCell.innerHTML = "Tick";
   tickHeaderCell.className = "_number mat-header-cell cdk-column-tick mat-column-tick ng-star-inserted";
   header.appendChild(tickHeaderCell);
+
+  const changeHeaderCell = document.createElement("td");
+  changeHeaderCell.innerHTML = "Change";
+  changeHeaderCell.className = "_number mat-header-cell cdk-column-change mat-column-change";
+  header.appendChild(changeHeaderCell);
+
+  const resourceHeaderCell = document.createElement("td");
+  resourceHeaderCell.innerHTML = "R";
+  resourceHeaderCell.className = "_number mat-header-cell cdk-column-change";
+  header.appendChild(resourceHeaderCell);
 
   const descriptionHeaderCell = document.createElement("td");
   descriptionHeaderCell.innerHTML = "Description";
@@ -181,6 +193,17 @@ module.exports.generateHistoryHtmlRow = function (history) {
   tickCell.className = "_number mat-cell cdk-column-tick mat-column-tick ng-star-inserted";
   row.appendChild(tickCell);
 
+  const changeCell = document.createElement("td");
+  changeCell.className = `_number mat-cell cdk-column-change mat-column-change ${
+    history.change > 0 ? "_success" : "_fail"
+  }`;
+  row.appendChild(changeCell);
+  changeCell.innerHTML = module.exports.nFormatter(history.change);
+
+  const resourceCell = document.createElement("td");
+  resourceCell.className = `_number mat-cell cdk-column-change mat-column-change`;
+  row.appendChild(resourceCell);
+
   const descriptionCell = document.createElement("td");
   descriptionCell.className = "mat-cell cdk-column-description mat-column-description ng-star-inserted";
   descriptionCell.style = "text-align:right;";
@@ -191,8 +214,6 @@ module.exports.generateHistoryHtmlRow = function (history) {
   tickCell.innerHTML = history.tick;
 
   var shard = history.shard || "shard0";
-
-  // TODO _success & _fail for positive or negative changes
 
   if (history.type == "market.fee") {
     /*
@@ -218,6 +239,8 @@ module.exports.generateHistoryHtmlRow = function (history) {
       var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
       var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
       var resourceIcon = `<a href="#!/market/all/${shard}/${type}"><img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/${type}.png" style="margin-right:0"></a>`;
+
+      resourceCell.innerHTML = resourceIcon;
 
       const amount = market.remainingAmount
         ? `${module.exports.nFormatter(market.remainingAmount)} remaining`
@@ -246,6 +269,8 @@ module.exports.generateHistoryHtmlRow = function (history) {
     var resourceEnergy = `<a href="#!/market/all/${shard}/energy">
                             <img src="https://s3.amazonaws.com/static.screeps.com/upload/mineral-icons/energy.png">
                         </a>`;
+
+    resourceCell.innerHTML = resourceIcon;
 
     if (module.exports.shards[shard] && module.exports.shards[shard].rooms.includes(targetRoomName)) {
       let temp = roomName;
