@@ -28,7 +28,9 @@ module.exports.init = function () {
   });
 
   var style = document.createElement("style");
-  style.innerHTML = "mat-row:nth-of-type(2n+1) { background-color: rgba(255, 255, 255, 0.02); }";
+  style.innerHTML = ".mat-row:nth-of-type(2n+1) { background-color: rgba(255, 255, 255, 0.02); }";
+  style.innerHTML +=
+    ".loadButton {place-items: center;margin: 0 20px;border: none;background: transparent;color: #4A5FD2;font-size: 12px;font-weight: 600;line-height: 26px;text-transform: uppercase;}";
   document.head.appendChild(style);
 
   module.exports.players = {};
@@ -45,7 +47,7 @@ module.exports.init = function () {
 
   module.exports.marketHistory = document.createElement("table");
   module.exports.marketHistory.style = "width: 100%;";
-  module.exports.container.appendChild(module.exports.marketHistory);
+
   module.exports.marketHistory.className = "app-market-table mat-table";
 
   const header = document.createElement("tr");
@@ -75,18 +77,22 @@ module.exports.init = function () {
   appHistory.parentNode.replaceChild(module.exports.container, appHistory);
 
   module.exports.loadNewerButton = document.createElement("button");
+  module.exports.loadNewerButton.className = "loadButton";
   module.exports.loadNewerButton.textContent = "Load new orders";
   module.exports.loadNewerButton.onclick = () => {
     module.exports.fetchMarketHistoryPage(0);
   };
-  module.exports.marketHistory.parentNode.prepend(module.exports.loadNewerButton);
+  module.exports.container.appendChild(module.exports.loadNewerButton);
+
+  module.exports.container.appendChild(module.exports.marketHistory);
 
   module.exports.loadMoreButton = document.createElement("button");
+  module.exports.loadMoreButton.className = "loadButton";
   module.exports.loadMoreButton.textContent = "Load more orders";
   module.exports.loadMoreButton.onclick = () => {
     module.exports.fetchMarketHistoryPage(++module.exports.page);
   };
-  module.exports.marketHistory.parentNode.appendChild(module.exports.loadMoreButton);
+  module.exports.container.appendChild(module.exports.loadMoreButton);
 
   // https://stackoverflow.com/questions/8939467/chrome-extension-to-read-http-response
 
@@ -176,7 +182,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
   const descriptionCell = document.createElement("td");
   descriptionCell.className = "mat-cell cdk-column-description mat-column-description ng-star-inserted";
-  descriptionCell.style = "text-align:left;";
+  descriptionCell.style = "text-align:right;";
   row.appendChild(descriptionCell);
 
   dateCell.innerHTML = history.date;
