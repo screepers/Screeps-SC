@@ -95,7 +95,8 @@ module.exports.init = function () {
   module.exports.loadNewerButton.className = "loadButton";
   module.exports.loadNewerButton.textContent = "Load new orders";
   module.exports.loadNewerButton.onclick = () => {
-    module.exports.fetchMarketHistoryPage(0);
+    // TODO: handle an issue where you wait for so long that page 0..N actually contains new orders
+    module.exports.fetchMarketHistoryPage(0, true);
   };
   module.exports.container.appendChild(module.exports.loadNewerButton);
 
