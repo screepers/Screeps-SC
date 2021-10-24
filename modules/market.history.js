@@ -339,7 +339,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
       } else if (history.market.changeOrderPrice) {
         var market = history.market.changeOrderPrice;
         var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
-        var priceDigits = market.price < 1 ? 3 : 2
+        var priceDigits = market.newPrice < 1 ? 3 : 2
 
         descriptionCell.innerHTML = `Change Price ${module.exports.nFormatter(
           market.oldPrice, priceDigits
