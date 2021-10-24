@@ -98,7 +98,7 @@ module.exports.init = function () {
   module.exports.loadNewerButton.textContent = "Load new orders";
   module.exports.loadNewerButton.onclick = () => {
     // TODO: handle an issue where you wait for so long that page 0..N actually contains new orders
-    module.exports.fetchMarketHistoryPage(0, true);
+    module.exports.fetchMarketHistoryPage(0);
   };
   module.exports.container.appendChild(module.exports.loadNewerButton);
 
@@ -130,7 +130,7 @@ module.exports.init = function () {
   // });
 };
 
-module.exports.fetchPlayer = function (id, history, prepend) {
+module.exports.fetchPlayer = function (id, history) {
   module.ajaxGet("https://screeps.com/api/user/find?id=" + id, function (data, error) {
     /*
       {
@@ -165,7 +165,7 @@ module.exports.fetchPlayer = function (id, history, prepend) {
       module.exports.players[history.market.owner] &&
       module.exports.players[history.market.dealer]
     ) {
-      module.exports.insertRow(history, prepend)
+      module.exports.insertRow(history)
       module.exports.sortTable();
     }
 
@@ -207,7 +207,7 @@ module.exports.sortTable = function () {
   }
 }
 
-module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
+module.exports.fetchMarketHistoryPage = function (page) {
   console.log(`Fetching page ${page}`);
   module.ajaxGet("https://screeps.com/api/user/money-history?page=" + page, function (data, error) {
     /**
@@ -239,18 +239,18 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
 
       let missingPlayer = false;
       if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
-        module.exports.fetchPlayer(history.market.dealer, history, prepend)
+        module.exports.fetchPlayer(history.market.dealer, history)
         missingPlayer = true;
       }
 
       if (history.market && history.market.owner && !history.market.npc && !module.exports.players[history.market.owner]) {
-        module.exports.fetchPlayer(history.market.owner, history, prepend)
+        module.exports.fetchPlayer(history.market.owner, history)
         missingPlayer = true;
       }
       // TODO: Add icon and player entry for NPC
 
       if (!missingPlayer) {
-        module.exports.insertRow(history, prepend)
+        module.exports.insertRow(history)
       }
     }
     module.exports.sortTable();
@@ -259,18 +259,14 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
   });
 };
 
-module.exports.insertRow = function (history, prepend) {
+module.exports.insertRow = function (history) {
   if (document.getElementById(history._id)) {
     console.log(history._id, "found skipping");
     return;
   }
 
   const row = module.exports.generateHistoryHtmlRow(history);
-  if (prepend) {
-    module.exports.marketHistory.prepend(row);
-  } else {
-    module.exports.marketHistory.appendChild(row);
-  }
+  module.exports.marketHistory.appendChild(row);
 }
 
 module.exports.generateHistoryHtmlRow = function (history) {
