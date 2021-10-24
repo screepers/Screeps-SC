@@ -154,27 +154,27 @@ module.exports.fetchPlayer = function (id, history) {
 
     if (data.ok) {
       module.exports.players[id] = {
-        userName : data.user.username,
-        userBadge : "https://screeps.com/api/user/badge-svg?username=" + data.user.username
-      }
+        userName: data.user.username,
+        userBadge: "https://screeps.com/api/user/badge-svg?username=" + data.user.username
+      };
     }
 
-    if (history.market &&
+    if (
+      history.market &&
       history.market.owner &&
       history.market.dealer &&
       module.exports.players[history.market.owner] &&
       module.exports.players[history.market.dealer]
     ) {
-      module.exports.insertRow(history)
+      module.exports.insertRow(history);
       module.exports.sortTable();
     }
-
   });
-}
+};
 
 module.exports.sortTable = function () {
   var table, rows, switching, i, x, y, shouldSwitch;
-  table = module.exports.marketHistory
+  table = module.exports.marketHistory;
   switching = true;
   /* Make a loop that will continue until
   no switching has been done: */
@@ -184,7 +184,7 @@ module.exports.sortTable = function () {
     rows = table.rows;
     /* Loop through all table rows (except the
     first, which contains table headers): */
-    for (i = 1; i < (rows.length - 1); i++) {
+    for (i = 1; i < rows.length - 1; i++) {
       // Start by saying there should be no switching:
       shouldSwitch = false;
       /* Get the two elements you want to compare,
@@ -205,7 +205,7 @@ module.exports.sortTable = function () {
       switching = true;
     }
   }
-}
+};
 
 module.exports.fetchMarketHistoryPage = function (page) {
   console.log(`Fetching page ${page}`);
@@ -236,21 +236,25 @@ module.exports.fetchMarketHistoryPage = function (page) {
     }
 
     for (const history of data.list) {
-
       let missingPlayer = false;
       if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
-        module.exports.fetchPlayer(history.market.dealer, history)
+        module.exports.fetchPlayer(history.market.dealer, history);
         missingPlayer = true;
       }
 
-      if (history.market && history.market.owner && !history.market.npc && !module.exports.players[history.market.owner]) {
-        module.exports.fetchPlayer(history.market.owner, history)
+      if (
+        history.market &&
+        history.market.owner &&
+        !history.market.npc &&
+        !module.exports.players[history.market.owner]
+      ) {
+        module.exports.fetchPlayer(history.market.owner, history);
         missingPlayer = true;
       }
       // TODO: Add icon and player entry for NPC
 
       if (!missingPlayer) {
-        module.exports.insertRow(history)
+        module.exports.insertRow(history);
       }
     }
     module.exports.sortTable();
@@ -267,7 +271,7 @@ module.exports.insertRow = function (history) {
 
   const row = module.exports.generateHistoryHtmlRow(history);
   module.exports.marketHistory.appendChild(row);
-}
+};
 
 module.exports.generateHistoryHtmlRow = function (history) {
   // console.log(history);
@@ -294,8 +298,9 @@ module.exports.generateHistoryHtmlRow = function (history) {
     history.change > 0 ? "_success" : "_fail"
   }`;
   row.appendChild(changeCell);
-  changeCell.innerHTML = module.exports.nFormatter(history.change) +
-  '<div style="margin-right:0px !important" class="type resource-credits"></div>';
+  changeCell.innerHTML =
+    module.exports.nFormatter(history.change) +
+    '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
   resourceCell.className = `_number mat-cell cdk-column-change mat-column-change ${
@@ -339,11 +344,12 @@ module.exports.generateHistoryHtmlRow = function (history) {
       } else if (history.market.changeOrderPrice) {
         var market = history.market.changeOrderPrice;
         var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
-        var priceChange = Math.abs(market.newPrice - market.oldPrice)
-        var priceDigits = priceChange < 0.01 ? 3 : 2
+        var priceChange = Math.abs(market.newPrice - market.oldPrice);
+        var priceDigits = priceChange < 0.01 ? 3 : 2;
 
         descriptionCell.innerHTML = `Change Price ${module.exports.nFormatter(
-          market.oldPrice, priceDigits
+          market.oldPrice,
+          priceDigits
         )} -> ${module.exports.nFormatter(market.newPrice, priceDigits)} ${infoCircle}`;
       } else {
         var market = history.market.order;
@@ -389,7 +395,6 @@ module.exports.generateHistoryHtmlRow = function (history) {
         targetRoomIsMine = true;
       }
 
-
       var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
       var targetRoomLink = `<a href="#!/room/${shard}/${targetRoomName}">${targetRoomName}</a>`;
       var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
@@ -398,21 +403,28 @@ module.exports.generateHistoryHtmlRow = function (history) {
       )} ${resourceEnergy}</span>)`;
 
       const amount = module.exports.nFormatter(market.amount);
-      var priceDigits = market.price < 0.01 ? 3 : 2
+      var priceDigits = market.price < 0.01 ? 3 : 2;
       const price = module.exports.nFormatter(market.price, priceDigits);
+
       resourceCell.innerHTML = (history.type == "market.sell" ? "-" : "") + amount + resourceIcon;
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
 
       if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
-        module.exports.fetchPlayer(history.market.dealer)
+        module.exports.fetchPlayer(history.market.dealer);
       }
 
       const ownerPlayerName = module.exports.players[market.owner] ? module.exports.players[market.owner].userName : "";
-      const ownerPlayerIcon =  module.exports.players[market.owner] ? module.exports.playerBadge(ownerPlayerName, module.exports.players[market.owner].userBadge) : "";
+      const ownerPlayerIcon = module.exports.players[market.owner]
+        ? module.exports.playerBadge(ownerPlayerName, module.exports.players[market.owner].userBadge)
+        : "";
 
-      const dealerPlayerName = module.exports.players[market.dealer] ? module.exports.players[market.dealer].userName : "";
-      const dealerPlayerIcon =  module.exports.players[market.dealer] ? module.exports.playerBadge(dealerPlayerName, module.exports.players[market.dealer].userBadge) : "";
+      const dealerPlayerName = module.exports.players[market.dealer]
+        ? module.exports.players[market.dealer].userName
+        : "";
+      const dealerPlayerIcon = module.exports.players[market.dealer]
+        ? module.exports.playerBadge(dealerPlayerName, module.exports.players[market.dealer].userBadge)
+        : "";
 
       if (accountResource) {
         descriptionCell.innerHTML = `Account: ${soldOrBought} ${amount}${resourceIcon} (${price}) ${infoCircle}`;
@@ -443,8 +455,8 @@ module.exports.playerBadge = function (playerName, badge) {
             <a href="#!/profile/${playerName}">
               <img _ngcontent-bat-c17="" src=${badge} width="16" height="16">
             </a>
-          </app-badge>`
-}
+          </app-badge>`;
+};
 
 module.exports.update = function () {
   console.log("update getting called");
