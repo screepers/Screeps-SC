@@ -339,9 +339,9 @@ module.exports.generateHistoryHtmlRow = function (history) {
       } else if (history.market.changeOrderPrice) {
         var market = history.market.changeOrderPrice;
         var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
-
+        var priceDigits = market.price < 0.01 ? 3 : 2
         descriptionCell.innerHTML = `Change Price ${module.exports.nFormatter(
-          market.oldPrice
+          market.oldPrice, priceDigits
         )} -> ${module.exports.nFormatter(market.newPrice)} ${infoCircle}`;
       } else {
         var market = history.market.order;
@@ -396,7 +396,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
       )} ${resourceEnergy}</span>)`;
 
       const amount = module.exports.nFormatter(market.amount);
-      let priceDigits = market.price < 0.01 ? 3 : 2
+      var priceDigits = market.price < 0.01 ? 3 : 2
       const price = module.exports.nFormatter(market.price, priceDigits);
       resourceCell.innerHTML = (history.type == "market.sell" ? "-" : "") + amount + resourceIcon;
 
