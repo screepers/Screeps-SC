@@ -243,7 +243,7 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
         missingPlayer = true;
       }
 
-      if (history.market && history.market.owner && !module.exports.players[history.market.owner]) {
+      if (history.market && history.market.owner && !history.market.npc && !module.exports.players[history.market.owner]) {
         module.exports.fetchPlayer(history.market.owner, history, prepend)
         missingPlayer = true;
       }
