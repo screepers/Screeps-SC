@@ -130,6 +130,37 @@ module.exports.init = function () {
   // });
 };
 
+module.exports.fetchPlayer = function (id) {
+  console.log(`Fetching player id ${id}`);
+
+  module.ajaxGet("https://screeps.com/api/user/find?id=" + id, function (data, error) {
+    /*
+      {
+        "ok": 1,
+        "user": {
+            "_id": "58519b0bee6ae29347627228",
+            "username": "Geir1983",
+            "badge": {
+                "type": 13,
+                "color1": "#0066ff",
+                "color2": "#0066ff",
+                "color3": "#2b2b2b",
+                "param": -22,
+                "flip": true
+            },
+            "gcl": 26007686581,
+            "power": 705273606
+        }
+    }
+    */
+
+    module.exports.players[id] = {
+      userName : data.user.username,
+      userBadge : "https://screeps.com/api/user/badge-svg?username=" + data.user.username
+    }
+  });
+
+}
 module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
   console.log(`Fetching page ${page}`);
   module.ajaxGet("https://screeps.com/api/user/money-history?page=" + page, function (data, error) {
@@ -164,8 +195,13 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
         continue;
       }
 
-      if (history.dealer && !module.exports.players[history.dealer]) {
-        // https://screeps.com/api/user/find?id=5a44e109ac5a5f1d0146916e
+      if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
+        module.exports.fetchPlayer(history.market.dealer)
+        // TODO: render player icon
+      }
+
+      if (history.market && history.market.owner && !module.exports.players[history.market.owner]) {
+        module.exports.fetchPlayer(history.market.owner)
         // TODO: render player icon
       }
 
@@ -299,6 +335,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
         targetRoomIsMine = true;
       }
 
+
       var roomLink = `<a href="#!/room/${shard}/${roomName}">${roomName}</a>`;
       var targetRoomLink = `<a href="#!/room/${shard}/${targetRoomName}">${targetRoomName}</a>`;
       var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
@@ -311,14 +348,20 @@ module.exports.generateHistoryHtmlRow = function (history) {
       resourceCell.innerHTML = (history.type == "market.sell" ? "-" : "") + amount + resourceIcon;
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
-      const fromOrTo = history.type == "market.buy" ? "from" : "to";
+
+      const ownerPlayerName = module.exports.players[market.owner] ? module.exports.players[market.owner].userName : "";
+      const ownerPlayerIcon =  module.exports.players[market.owner] ? module.exports.playerBadge(ownerPlayerName, module.exports.players[market.owner].userBadge) : "";
+
+      const dealerPlayerName = module.exports.players[market.dealer] ? module.exports.players[market.dealer].userName : "";
+      const dealerPlayerIcon =  module.exports.players[market.dealer] ? module.exports.playerBadge(dealerPlayerName, module.exports.players[market.dealer].userBadge) : "";
+
       if (accountResource) {
         // TODO: acquire player, don't think we have that info
         descriptionCell.innerHTML = `Account: ${soldOrBought} ${amount}${resourceIcon} (${price}) ${infoCircle}`;
       } else if (dealerIsMe) {
-        descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
+        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
       } else {
-        descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${infoCircle}`;
+        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} at ${targetRoomLink} ${infoCircle}`;
       }
     }
   } catch (error) {
@@ -336,6 +379,16 @@ module.exports.resourceImageLink = function (shard, type) {
                   </a>`
     : "";
 };
+
+module.exports.playerBadge = function (playerName, badge) {
+  return `<app-badge _ngcontent-bat-c16="" title="" _nghost-bat-c17="">
+    <a href="#!/profile/${playerName}">
+      <img _ngcontent-bat-c17="" src=${badge} width="16" height="16">
+      </a>
+    </app-badge>`
+    }
+
+
 module.exports.update = function () {
   console.log("update getting called");
 };
