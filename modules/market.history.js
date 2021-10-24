@@ -444,16 +444,16 @@ module.exports.generateHistoryHtmlRow = function (history) {
 module.exports.resourceImageLink = function (shard, type) {
   // market-resource--battery has -10px important margin, we need to override that
   return type
-    ? `<a href="#!/market/all/${shard}/${type}">
+    ? `<a href="#!/market/all/${shard}/${type}" title="${type}">
                     <div style=\"margin-right:0px !important\" class=\"type market-resource--${type}\"></div>
                   </a>`
     : "";
 };
 
 module.exports.playerBadge = function (playerName, badge) {
-  return `<app-badge _ngcontent-bat-c16="" title="" _nghost-bat-c17="">
+  return `<app-badge title="${playerName}" >
             <a href="#!/profile/${playerName}">
-              <img _ngcontent-bat-c17="" src=${badge} width="16" height="16">
+              <img src=${badge} width="16" height="16">
             </a>
           </app-badge>`;
 };
