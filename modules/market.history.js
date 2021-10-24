@@ -247,6 +247,7 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
         module.exports.fetchPlayer(history.market.owner, history, prepend)
         missingPlayer = true;
       }
+      // TODO: Add icon and player entry for NPC
 
       if (!missingPlayer) {
         module.exports.insertRow(history, prepend)
