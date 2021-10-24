@@ -396,7 +396,8 @@ module.exports.generateHistoryHtmlRow = function (history) {
       )} ${resourceEnergy}</span>)`;
 
       const amount = module.exports.nFormatter(market.amount);
-      const price = module.exports.nFormatter(market.price);
+      let priceDigits = market.price < 0.01 ? 3 : 2
+      const price = module.exports.nFormatter(market.price, priceDigits);
       resourceCell.innerHTML = (history.type == "market.sell" ? "-" : "") + amount + resourceIcon;
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
