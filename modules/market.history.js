@@ -417,7 +417,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
       if (accountResource) {
         descriptionCell.innerHTML = `Account: ${soldOrBought} ${amount}${resourceIcon} (${price}) ${infoCircle}`;
       } else if (dealerIsMe) {
-        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} ${soldOrBought} at ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
+        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${targetRoomLink} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} ${soldOrBought} from ${roomLink} ${transactionCostHtml} ${infoCircle}`;
       } else {
         descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} at ${targetRoomLink} ${infoCircle}`;
       }
