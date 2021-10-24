@@ -131,8 +131,6 @@ module.exports.init = function () {
 };
 
 module.exports.fetchPlayer = function (id) {
-  console.log(`Fetching player id ${id}`);
-
   module.ajaxGet("https://screeps.com/api/user/find?id=" + id, function (data, error) {
     /*
       {
@@ -151,16 +149,19 @@ module.exports.fetchPlayer = function (id) {
             "gcl": 26007686581,
             "power": 705273606
         }
-    }
+      }
     */
 
-    module.exports.players[id] = {
-      userName : data.user.username,
-      userBadge : "https://screeps.com/api/user/badge-svg?username=" + data.user.username
+    if (data.ok) {
+      module.exports.players[id] = {
+        userName : data.user.username,
+        userBadge : "https://screeps.com/api/user/badge-svg?username=" + data.user.username
+      }
+
     }
   });
-
 }
+
 module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
   console.log(`Fetching page ${page}`);
   module.ajaxGet("https://screeps.com/api/user/money-history?page=" + page, function (data, error) {
@@ -196,13 +197,11 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
       }
 
       if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
-        module.exports.fetchPlayer(history.market.dealer)
-        // TODO: render player icon
+        module.exports.fetchPlayer(history.market.dealer + history.market.dealer)
       }
 
       if (history.market && history.market.owner && !module.exports.players[history.market.owner]) {
         module.exports.fetchPlayer(history.market.owner)
-        // TODO: render player icon
       }
 
       const row = module.exports.generateHistoryHtmlRow(history);
@@ -356,7 +355,6 @@ module.exports.generateHistoryHtmlRow = function (history) {
       const dealerPlayerIcon =  module.exports.players[market.dealer] ? module.exports.playerBadge(dealerPlayerName, module.exports.players[market.dealer].userBadge) : "";
 
       if (accountResource) {
-        // TODO: acquire player, don't think we have that info
         descriptionCell.innerHTML = `Account: ${soldOrBought} ${amount}${resourceIcon} (${price}) ${infoCircle}`;
       } else if (dealerIsMe) {
         descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
@@ -382,12 +380,11 @@ module.exports.resourceImageLink = function (shard, type) {
 
 module.exports.playerBadge = function (playerName, badge) {
   return `<app-badge _ngcontent-bat-c16="" title="" _nghost-bat-c17="">
-    <a href="#!/profile/${playerName}">
-      <img _ngcontent-bat-c17="" src=${badge} width="16" height="16">
-      </a>
-    </app-badge>`
-    }
-
+            <a href="#!/profile/${playerName}">
+              <img _ngcontent-bat-c17="" src=${badge} width="16" height="16">
+            </a>
+          </app-badge>`
+}
 
 module.exports.update = function () {
   console.log("update getting called");
