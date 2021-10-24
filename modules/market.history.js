@@ -130,7 +130,7 @@ module.exports.init = function () {
   // });
 };
 
-module.exports.fetchPlayer = function (id) {
+module.exports.fetchPlayer = function (id, history, prepend) {
   module.ajaxGet("https://screeps.com/api/user/find?id=" + id, function (data, error) {
     /*
       {
@@ -157,9 +157,54 @@ module.exports.fetchPlayer = function (id) {
         userName : data.user.username,
         userBadge : "https://screeps.com/api/user/badge-svg?username=" + data.user.username
       }
-
     }
+
+    if (history.market &&
+      history.market.owner &&
+      history.market.dealer &&
+      module.exports.players[history.market.owner] &&
+      module.exports.players[history.market.dealer]
+    ) {
+      module.exports.insertRow(history, prepend)
+      module.exports.sortTable();
+    }
+
   });
+}
+
+module.exports.sortTable = function () {
+  var table, rows, switching, i, x, y, shouldSwitch;
+  table = module.exports.marketHistory
+  switching = true;
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    for (i = 1; i < (rows.length - 1); i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[2];
+      y = rows[i + 1].getElementsByTagName("TD")[2];
+      // Check if the two rows should switch place:
+      if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+        // If so, mark as a switch and break the loop:
+        shouldSwitch = true;
+        break;
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+    }
+  }
 }
 
 module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
@@ -191,30 +236,41 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
     }
 
     for (const history of data.list) {
-      if (document.getElementById(history._id)) {
-        console.log(history._id, "found skipping");
-        continue;
-      }
 
+      let missingPlayer = false;
       if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
-        module.exports.fetchPlayer(history.market.dealer + history.market.dealer)
+        module.exports.fetchPlayer(history.market.dealer, history, prepend)
+        missingPlayer = true;
       }
 
       if (history.market && history.market.owner && !module.exports.players[history.market.owner]) {
-        module.exports.fetchPlayer(history.market.owner)
+        module.exports.fetchPlayer(history.market.owner, history, prepend)
+        missingPlayer = true;
       }
 
-      const row = module.exports.generateHistoryHtmlRow(history);
-      if (prepend) {
-        module.exports.marketHistory.prepend(row);
-      } else {
-        module.exports.marketHistory.appendChild(row);
+      if (!missingPlayer) {
+        module.exports.insertRow(history, prepend)
       }
     }
+    module.exports.sortTable();
 
     // module.exports.update();
   });
 };
+
+module.exports.insertRow = function (history, prepend) {
+  if (document.getElementById(history._id)) {
+    console.log(history._id, "found skipping");
+    return;
+  }
+
+  const row = module.exports.generateHistoryHtmlRow(history);
+  if (prepend) {
+    module.exports.marketHistory.prepend(row);
+  } else {
+    module.exports.marketHistory.appendChild(row);
+  }
+}
 
 module.exports.generateHistoryHtmlRow = function (history) {
   // console.log(history);
@@ -348,6 +404,10 @@ module.exports.generateHistoryHtmlRow = function (history) {
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
 
+      if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
+        module.exports.fetchPlayer(history.market.dealer)
+      }
+
       const ownerPlayerName = module.exports.players[market.owner] ? module.exports.players[market.owner].userName : "";
       const ownerPlayerIcon =  module.exports.players[market.owner] ? module.exports.playerBadge(ownerPlayerName, module.exports.players[market.owner].userBadge) : "";
 
@@ -357,7 +417,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
       if (accountResource) {
         descriptionCell.innerHTML = `Account: ${soldOrBought} ${amount}${resourceIcon} (${price}) ${infoCircle}`;
       } else if (dealerIsMe) {
-        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
+        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} at ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
       } else {
         descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} at ${targetRoomLink} ${infoCircle}`;
       }
