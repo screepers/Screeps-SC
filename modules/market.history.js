@@ -98,7 +98,7 @@ module.exports.init = function () {
   module.exports.loadNewerButton.textContent = "Load new orders";
   module.exports.loadNewerButton.onclick = () => {
     // TODO: handle an issue where you wait for so long that page 0..N actually contains new orders
-    module.exports.fetchMarketHistoryPage(0, true);
+    module.exports.fetchMarketHistoryPage(0);
   };
   module.exports.container.appendChild(module.exports.loadNewerButton);
 
@@ -130,7 +130,84 @@ module.exports.init = function () {
   // });
 };
 
-module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
+module.exports.fetchPlayer = function (id, history) {
+  module.ajaxGet("https://screeps.com/api/user/find?id=" + id, function (data, error) {
+    /*
+      {
+        "ok": 1,
+        "user": {
+            "_id": "58519b0bee6ae29347627228",
+            "username": "Geir1983",
+            "badge": {
+                "type": 13,
+                "color1": "#0066ff",
+                "color2": "#0066ff",
+                "color3": "#2b2b2b",
+                "param": -22,
+                "flip": true
+            },
+            "gcl": 26007686581,
+            "power": 705273606
+        }
+      }
+    */
+
+    if (data.ok) {
+      module.exports.players[id] = {
+        userName: data.user.username,
+        userBadge: "https://screeps.com/api/user/badge-svg?username=" + data.user.username
+      };
+    }
+
+    if (
+      history.market &&
+      history.market.owner &&
+      history.market.dealer &&
+      module.exports.players[history.market.owner] &&
+      module.exports.players[history.market.dealer]
+    ) {
+      module.exports.insertRow(history);
+      module.exports.sortTable();
+    }
+  });
+};
+
+module.exports.sortTable = function () {
+  var table, rows, switching, i, x, y, shouldSwitch;
+  table = module.exports.marketHistory;
+  switching = true;
+  /* Make a loop that will continue until
+  no switching has been done: */
+  while (switching) {
+    // Start by saying: no switching is done:
+    switching = false;
+    rows = table.rows;
+    /* Loop through all table rows (except the
+    first, which contains table headers): */
+    for (i = 1; i < rows.length - 1; i++) {
+      // Start by saying there should be no switching:
+      shouldSwitch = false;
+      /* Get the two elements you want to compare,
+      one from current row and one from the next: */
+      x = rows[i].getElementsByTagName("TD")[2];
+      y = rows[i + 1].getElementsByTagName("TD")[2];
+      // Check if the two rows should switch place:
+      if (x.innerHTML.toLowerCase() < y.innerHTML.toLowerCase()) {
+        // If so, mark as a switch and break the loop:
+        shouldSwitch = true;
+        break;
+      }
+    }
+    if (shouldSwitch) {
+      /* If a switch has been marked, make the switch
+      and mark that a switch has been done: */
+      rows[i].parentNode.insertBefore(rows[i + 1], rows[i]);
+      switching = true;
+    }
+  }
+};
+
+module.exports.fetchMarketHistoryPage = function (page) {
   console.log(`Fetching page ${page}`);
   module.ajaxGet("https://screeps.com/api/user/money-history?page=" + page, function (data, error) {
     /**
@@ -159,26 +236,41 @@ module.exports.fetchMarketHistoryPage = function (page, prepend = false) {
     }
 
     for (const history of data.list) {
-      if (document.getElementById(history._id)) {
-        console.log(history._id, "found skipping");
-        continue;
+      let missingPlayer = false;
+      if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
+        module.exports.fetchPlayer(history.market.dealer, history);
+        missingPlayer = true;
       }
 
-      if (history.dealer && !module.exports.players[history.dealer]) {
-        // https://screeps.com/api/user/find?id=5a44e109ac5a5f1d0146916e
-        // TODO: render player icon
+      if (
+        history.market &&
+        history.market.owner &&
+        !history.market.npc &&
+        !module.exports.players[history.market.owner]
+      ) {
+        module.exports.fetchPlayer(history.market.owner, history);
+        missingPlayer = true;
       }
+      // TODO: Add icon and player entry for NPC
 
-      const row = module.exports.generateHistoryHtmlRow(history);
-      if (prepend) {
-        module.exports.marketHistory.prepend(row);
-      } else {
-        module.exports.marketHistory.appendChild(row);
+      if (!missingPlayer) {
+        module.exports.insertRow(history);
       }
     }
+    module.exports.sortTable();
 
     // module.exports.update();
   });
+};
+
+module.exports.insertRow = function (history) {
+  if (document.getElementById(history._id)) {
+    console.log(history._id, "found skipping");
+    return;
+  }
+
+  const row = module.exports.generateHistoryHtmlRow(history);
+  module.exports.marketHistory.appendChild(row);
 };
 
 module.exports.generateHistoryHtmlRow = function (history) {
@@ -206,8 +298,9 @@ module.exports.generateHistoryHtmlRow = function (history) {
     history.change > 0 ? "_success" : "_fail"
   }`;
   row.appendChild(changeCell);
-  changeCell.innerHTML = module.exports.nFormatter(history.change) +
-  '<div style="margin-right:0px !important" class="type resource-credits"></div>';
+  changeCell.innerHTML =
+    module.exports.nFormatter(history.change) +
+    '<div style="margin-right:0px !important" class="type resource-credits"></div>';
 
   const resourceCell = document.createElement("td");
   resourceCell.className = `_number mat-cell cdk-column-change mat-column-change ${
@@ -251,10 +344,13 @@ module.exports.generateHistoryHtmlRow = function (history) {
       } else if (history.market.changeOrderPrice) {
         var market = history.market.changeOrderPrice;
         var infoCircle = '<div class="fa fa-question-circle" title=\'' + JSON.stringify(market) + "'></div>";
+        var priceChange = Math.abs(market.newPrice - market.oldPrice);
+        var priceDigits = priceChange < 0.01 ? 3 : 2;
 
         descriptionCell.innerHTML = `Change Price ${module.exports.nFormatter(
-          market.oldPrice
-        )} -> ${module.exports.nFormatter(market.newPrice)} ${infoCircle}`;
+          market.oldPrice,
+          priceDigits
+        )} -> ${module.exports.nFormatter(market.newPrice, priceDigits)} ${infoCircle}`;
       } else {
         var market = history.market.order;
         var type = market.resourceType;
@@ -307,18 +403,35 @@ module.exports.generateHistoryHtmlRow = function (history) {
       )} ${resourceEnergy}</span>)`;
 
       const amount = module.exports.nFormatter(market.amount);
-      const price = module.exports.nFormatter(market.price);
+      var priceDigits = market.price < 0.01 ? 3 : 2;
+      const price = module.exports.nFormatter(market.price, priceDigits);
+
       resourceCell.innerHTML = (history.type == "market.sell" ? "-" : "") + amount + resourceIcon;
 
       const soldOrBought = history.type == "market.buy" ? "bought" : "sold";
-      const fromOrTo = history.type == "market.buy" ? "from" : "to";
+
+      if (history.market && history.market.dealer && !module.exports.players[history.market.dealer]) {
+        module.exports.fetchPlayer(history.market.dealer);
+      }
+
+      const ownerPlayerName = module.exports.players[market.owner] ? module.exports.players[market.owner].userName : "";
+      const ownerPlayerIcon = module.exports.players[market.owner]
+        ? module.exports.playerBadge(ownerPlayerName, module.exports.players[market.owner].userBadge)
+        : "";
+
+      const dealerPlayerName = module.exports.players[market.dealer]
+        ? module.exports.players[market.dealer].userName
+        : "";
+      const dealerPlayerIcon = module.exports.players[market.dealer]
+        ? module.exports.playerBadge(dealerPlayerName, module.exports.players[market.dealer].userBadge)
+        : "";
+
       if (accountResource) {
-        // TODO: acquire player, don't think we have that info
         descriptionCell.innerHTML = `Account: ${soldOrBought} ${amount}${resourceIcon} (${price}) ${infoCircle}`;
       } else if (dealerIsMe) {
-        descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${transactionCostHtml} ${infoCircle}`;
+        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${targetRoomLink} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} ${soldOrBought} from ${roomLink} ${transactionCostHtml} ${infoCircle}`;
       } else {
-        descriptionCell.innerHTML = `${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) ${fromOrTo} ${targetRoomLink} ${infoCircle}`;
+        descriptionCell.innerHTML = `${ownerPlayerIcon} at ${roomLink} ${soldOrBought} ${amount}${resourceIcon} (${price}) Dealer ${dealerPlayerIcon} at ${targetRoomLink} ${infoCircle}`;
       }
     }
   } catch (error) {
@@ -331,11 +444,20 @@ module.exports.generateHistoryHtmlRow = function (history) {
 module.exports.resourceImageLink = function (shard, type) {
   // market-resource--battery has -10px important margin, we need to override that
   return type
-    ? `<a href="#!/market/all/${shard}/${type}">
+    ? `<a href="#!/market/all/${shard}/${type}" title="${type}">
                     <div style=\"margin-right:0px !important\" class=\"type market-resource--${type}\"></div>
                   </a>`
     : "";
 };
+
+module.exports.playerBadge = function (playerName, badge) {
+  return `<app-badge title="${playerName}" >
+            <a href="#!/profile/${playerName}">
+              <img src=${badge} width="16" height="16">
+            </a>
+          </app-badge>`;
+};
+
 module.exports.update = function () {
   console.log("update getting called");
 };
