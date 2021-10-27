@@ -1,10 +1,14 @@
 module.exports.init = function () {
+  console.log("market.history.js init called");
   var userid = JSON.parse(localStorage.getItem("users.code.activeWorld"))[0]._id;
   module.exports.userId = userid;
+
+  console.log("Found userId", userid);
 
   module.ajaxGet("https://screeps.com/api/user/rooms?id=" + userid, function (data, error) {
     module.exports.shards = {};
     if (data && data.shards) {
+      console.log("Found shards", data.shards);
       for (const [shard, rooms] of Object.entries(data.shards)) {
         module.exports.shards[shard] = { rooms };
       }
@@ -28,6 +32,7 @@ module.exports.init = function () {
     module.exports.fetchMarketHistoryPage(module.exports.page);
   });
 
+  console.log("injecting styles", userid);
   var style = document.createElement("style");
   style.innerHTML = ".mat-row:nth-of-type(2n+1) { background-color: rgba(255, 255, 255, 0.02); }";
   style.innerHTML +=
@@ -41,7 +46,7 @@ module.exports.init = function () {
   document.head.appendChild(style);
 
   module.exports.players = {
-    ["Invader"] : {
+    ["Invader"]: {
       userName: "Invader",
       userBadge: "https://screeps.com/api/user/badge-svg?username=Invader"
     }
@@ -96,6 +101,7 @@ module.exports.init = function () {
   descriptionHeaderCell.className = "mat-header-cell cdk-column-description mat-column-description ng-star-inserted";
   header.appendChild(descriptionHeaderCell);
 
+  console.log("replacing  app history with new container");
   appHistory.parentNode.replaceChild(module.exports.container, appHistory);
 
   module.exports.loadNewerButton = document.createElement("button");
@@ -412,7 +418,7 @@ module.exports.generateHistoryHtmlRow = function (history) {
         module.exports.fetchPlayer(history.market.dealer);
       }
 
-      const orderOwner = history.market.npc ? "Invader" : market.owner
+      const orderOwner = history.market.npc ? "Invader" : market.owner;
 
       const ownerPlayerName = module.exports.players[orderOwner] ? module.exports.players[orderOwner].userName : "";
       const ownerPlayerIcon = module.exports.players[orderOwner]
