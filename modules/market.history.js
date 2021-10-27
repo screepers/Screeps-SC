@@ -1,9 +1,23 @@
 module.exports.init = function () {
   console.log("market.history.js init called");
-  var userid = JSON.parse(localStorage.getItem("users.code.activeWorld"))[0]._id;
-  module.exports.userId = userid;
+  try {
+    var userid = JSON.parse(localStorage.getItem("users.code.activeWorld"))[0]._id;
+    module.exports.userId = userid;
+  } catch (error) {
+    console.error("Failed to get userId from localstorage", error);
+    console.log("attempting to get userId from /api/auth/me");
+    module.ajaxGet(window.location.origin + "/api/auth/me", function (data, error) {
+      console.log(data, error);
+      if (data) {
+        module.exports.userId = data._id;
+      } else {
+        console.error("Failed to acquire userId", data || error);
+        return;
+      }
+    });
+  }
 
-  console.log("Found userId", userid);
+  console.log("Found userId", module.exports.userId);
 
   module.ajaxGet("https://screeps.com/api/user/rooms?id=" + userid, function (data, error) {
     module.exports.shards = {};
@@ -32,7 +46,7 @@ module.exports.init = function () {
     module.exports.fetchMarketHistoryPage(module.exports.page);
   });
 
-  console.log("injecting styles", userid);
+  console.log("injecting styles");
   var style = document.createElement("style");
   style.innerHTML = ".mat-row:nth-of-type(2n+1) { background-color: rgba(255, 255, 255, 0.02); }";
   style.innerHTML +=
