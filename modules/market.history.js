@@ -40,7 +40,12 @@ module.exports.init = function () {
 
   document.head.appendChild(style);
 
-  module.exports.players = {};
+  module.exports.players = {
+    ["Invader"] : {
+      userName: "Invader",
+      userBadge: "https://screeps.com/api/user/badge-svg?username=Invader"
+    }
+  };
 
   var appHistory = document.getElementsByTagName("app-history")[0];
   // appHistory.innerHTML = ''
@@ -161,9 +166,8 @@ module.exports.fetchPlayer = function (id, history) {
 
     if (
       history.market &&
-      history.market.owner &&
       history.market.dealer &&
-      module.exports.players[history.market.owner] &&
+      ((history.market.owner && module.exports.players[history.market.owner]) || history.market.npc) &&
       module.exports.players[history.market.dealer]
     ) {
       module.exports.insertRow(history);
@@ -242,16 +246,10 @@ module.exports.fetchMarketHistoryPage = function (page) {
         missingPlayer = true;
       }
 
-      if (
-        history.market &&
-        history.market.owner &&
-        !history.market.npc &&
-        !module.exports.players[history.market.owner]
-      ) {
+      if (history.market && history.market.owner && !module.exports.players[history.market.owner]) {
         module.exports.fetchPlayer(history.market.owner, history);
         missingPlayer = true;
       }
-      // TODO: Add icon and player entry for NPC
 
       if (!missingPlayer) {
         module.exports.insertRow(history);
@@ -414,9 +412,11 @@ module.exports.generateHistoryHtmlRow = function (history) {
         module.exports.fetchPlayer(history.market.dealer);
       }
 
-      const ownerPlayerName = module.exports.players[market.owner] ? module.exports.players[market.owner].userName : "";
-      const ownerPlayerIcon = module.exports.players[market.owner]
-        ? module.exports.playerBadge(ownerPlayerName, module.exports.players[market.owner].userBadge)
+      const orderOwner = history.market.npc ? "Invader" : market.owner
+
+      const ownerPlayerName = module.exports.players[orderOwner] ? module.exports.players[orderOwner].userName : "";
+      const ownerPlayerIcon = module.exports.players[orderOwner]
+        ? module.exports.playerBadge(ownerPlayerName, module.exports.players[orderOwner].userBadge)
         : "";
 
       const dealerPlayerName = module.exports.players[market.dealer]
