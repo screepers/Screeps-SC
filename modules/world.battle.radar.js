@@ -33,7 +33,7 @@ module.exports.init = function () {
                         }
                       }
 
-                      module.getScopeData("md-sidenav-left", "Top", [], function (Top) {
+                      module.getScopeData("navbar", "Top", [], function (Top) {
                         var radarSvg = module.exports.getRadarSvg();
                         var sideBar = $(`<a class="md-button md-ink-ripple">
                                         <span style="margin: 0 10px 0 3px;opacity: 0.4;top:2px;position:relative;">
@@ -49,7 +49,7 @@ module.exports.init = function () {
                           module.exports.openModal();
                         });
 
-                        var leftBar = $(".md-sidenav-left a").eq(3).after(sideBar);
+                        var leftBar = $(".navbar-brand").append(sideBar);
                       });
                     }
                   );
