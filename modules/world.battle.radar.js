@@ -35,13 +35,8 @@ module.exports.init = function () {
 
                       module.getScopeData("navbar", "Top", [], function (Top) {
                         var radarSvg = module.exports.getRadarSvg();
-                        var sideBar = $(`<a class="md-button md-ink-ripple">
-                                        <span style="margin: 0 10px 0 3px;opacity: 0.4;top:2px;position:relative;">
+                        var sideBar = $(`<a class="md-raised md-button ng-scope md-ink-ripple" title="Battle Radar">
                                             ${radarSvg}
-                                        </span>
-                                        <span style="bottom: 5px;position: relative;">
-                                            Battle Radar
-                                        </span>
                                     </a>`);
 
                         sideBar.click(function () {
@@ -49,7 +44,7 @@ module.exports.init = function () {
                           module.exports.openModal();
                         });
 
-                        var leftBar = $(".navbar-brand").append(sideBar);
+                        var leftBar = $(".left-controls").prepend(sideBar);
                       });
                     }
                   );
@@ -462,7 +457,7 @@ module.exports.getPvpSvg = function () {
 };
 
 module.exports.getRadarSvg = function () {
-  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48" version="1.1" x="0px" y="0px" width="24px" height="24px">
+  return `<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" viewBox="0 0 48 48" version="1.1" x="0px" y="0px" width="36px" height="36px">
     <g stroke="none" stroke-width="1" fill="none" fill-rule="evenodd">
         <g transform="translate(-768.000000, -1248.000000)" fill="#FFF">
             <g transform="translate(96.000000, 1055.000000)">
