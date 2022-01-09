@@ -88,7 +88,7 @@ chrome.tabs.onUpdated.addListener(function (tabId, changeInfo, tab) {
         if (data.onUpdateArr) {
           data.onUpdateArr.forEach(function (info) {
             // contains instead of startswith? to make urls more flexible
-            if (tab.url.contains(info.url)) {
+            if (tab.url.includes(info.url)) {
               getStorageSync(info.path, function (option) {
                 if (option && option.enabled !== false) {
                   executeModule(tabId, info, option.config);
