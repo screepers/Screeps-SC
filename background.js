@@ -112,7 +112,7 @@ chrome.webRequest.onCompleted.addListener(
     chrome.storage.local.get("onCompletedArr", function (data) {
       if (data.onCompletedArr) {
         data.onCompletedArr.forEach(function (info) {
-          if (details.url.startsWith(info.url)) {
+          if (details.url.includes(info.url)) {
             getStorageSync(info.path, function (option) {
               if (option && option.enabled !== false) {
                 executeModule(details.tabId, info, option.config);

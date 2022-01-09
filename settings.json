@@ -3,7 +3,7 @@
         {
             "path": "modules/map.alliance.js",
             "runAt":{
-                "onUpdate": "https://screeps.com/a/#!/map"
+                "onUpdate": "/#!/map"
             },
             "options":{
                 "image": "/options/images/map.alliance.png",
@@ -21,7 +21,7 @@
         {
             "path": "modules/market.history.js",
             "runAt":{
-                "onCompleted": "https://screeps.com/api/user/money-history"
+                "onCompleted": "/api/user/money-history"
             },
             "options":{
                 "image": "/options/images/market.history.png"
@@ -30,8 +30,8 @@
         {
             "path": "modules/market.my.resources.js",
             "runAt":{
-                "onUpdate": "https://screeps.com/a/#!/market/",
-                "onCompleted": "https://screeps.com/api/game/market/orders-index"
+                "onUpdate": "/#!/market/",
+                "onCompleted": "/api/game/market/orders-index"
             },
             "options":{
                 "image": "/options/images/market.my.resources.png"
@@ -40,7 +40,7 @@
         {
             "path": "modules/profile.gcl.js",
             "runAt":{
-                "onUpdate": "https://screeps.com/a/#!/profile/"
+                "onUpdate": "/#!/profile/"
             },
             "options":{
                 "image": "/options/images/profile.gcl.png"
@@ -49,7 +49,7 @@
         {
             "path": "modules/rank.leaderboard.js",
             "runAt":{
-                "onUpdate": "https://screeps.com/a/#!/rank/"
+                "onUpdate": "/#!/rank/"
             },
             "options":{
                 "image": "/options/images/rank.leaderboard.png"
@@ -67,7 +67,7 @@
         {
             "path": "modules/room.creep.names.js",
             "runAt":{
-                "onUpdate": "https://screeps.com/a/#!/room/"
+                "onUpdate": "/#!/room/"
             },
             "options":{
                 "image": "/options/images/room.creep.names.png"
@@ -76,7 +76,7 @@
         {
             "path": "modules/world.battle.radar.js",
             "runAt":{
-                "onUpdate": "https://screeps.com/a/#!/"
+                "onUpdate": "/#!/"
             },
             "options":{
                 "image": "/options/images/world.battle.radar.png"
@@ -85,7 +85,7 @@
         {
             "path": "modules/navbar.bucket.js",
             "runAt":{
-                "onCompleted": "https://screeps.com/api/user/world-status"
+                "onCompleted": "/api/user/world-status"
             },
             "options":{}
         }
