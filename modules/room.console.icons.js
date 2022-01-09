@@ -9,6 +9,7 @@ module.exports.init = function () {
 };
 
 module.exports.update = function () {
+  console.log("Updating console icons");
   module.getScopeData("console", "Console", [], function (Console) {
     // Create Remove Button
     $(`<button id="sc-btn-remove-icon" class="md-primary md-hue-1 md-button md-ink-ripple" type="button" title="Remove last added icon" style="position: absolute;bottom: 0px;display: block;">
